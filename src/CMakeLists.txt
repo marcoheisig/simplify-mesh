@@ -1,6 +1,8 @@
 find_package(MPI REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 add_executable(
   distributed-polygon-reducer
@@ -20,4 +22,7 @@ target_compile_options(
 target_link_libraries(
   distributed-polygon-reducer
   ${MPI_LIBRARIES}
+  ${Boost_LIBRARIES}
   )
+
+message(STATUS ${Boost_LIBRARIES})
