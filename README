@@ -1,0 +1,2 @@
+This tool allows to collect and coarsen a surface mesh that may be distributed
+across a cluster. The communication is performed via MPI.
