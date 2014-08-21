@@ -9,5 +9,6 @@ public:
 private:
     /* we start one process per file */
     int rank;
-    std::string filename;
+    std::string input;
+    std::string output;
 };

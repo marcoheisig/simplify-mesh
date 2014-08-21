@@ -1,2 +1,17 @@
-This tool allows to collect and coarsen a surface mesh that may be distributed
-across a cluster. The communication is performed via MPI.
+* Overview
+  This tool allows to collect and coarsen a surface mesh that may be
+  distributed across a cluster. The communication is performed via MPI.
+
+* Installation
+  The following components are necessary to build the tool:
+  - MPI :: message passing interface for distributed computing
+  - VCG :: templated graph library
+  - Boost :: C++ extensions
+  - CMake :: A softwarebuild system
+
+  The path of the VCG installation must be specified manually. It is the
+  folder containing apps/ docs/ eigenlib/ img/ vcg/ and wrap/:
+  cmake -DVCG_INCLUDE_DIR=INSERT_VCG_PATH_HERE FOLDER_OF_THIS_README
+
+  For example
+  cmake -DVCG_INCLUDE_DIR=../vcglib ../distributed-polygon-reducer

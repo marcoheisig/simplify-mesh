@@ -15,7 +15,6 @@ struct UsedTypes
 class Vertex
     : public vcg::Vertex< UsedTypes,
                           vcg::vertex::Coord3f,
-                          vcg::vertex::Normal3f,
                           vcg::vertex::BitFlags >{};
 
 class Face
