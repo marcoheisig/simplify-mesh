@@ -34,7 +34,7 @@ App::App(int *argc, char ***argv) {
 
     if (vm.count("size")) {
         std::cout << "max size was set to "
-             << vm["size"].as<int>() << ".\n";
+             << vm["size"].as<int>() << " MB.\n";
     };
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
