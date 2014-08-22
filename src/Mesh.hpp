@@ -31,8 +31,4 @@ class Mesh
                                 std::vector<Face> ,
                                 std::vector<Edge> > {};
 
-Mesh createMeshFromObj(std::string filename);
-
-/* try to determine the file type automatically */
-Mesh createMeshFromFile(std::string filename);
-
+void createMeshFromOBJ(std::string filename);

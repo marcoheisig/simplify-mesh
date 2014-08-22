@@ -7,7 +7,6 @@ public:
     App(int *argc, char ***argv);
     void run();
 private:
-    /* we start one process per file */
     int rank;
     std::string input;
     std::string output;

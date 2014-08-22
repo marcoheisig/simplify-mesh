@@ -1,9 +1,11 @@
 /* Copyright (C) Marco Heisig 2014 - GNU GPLv3 or later */
 #include "Mesh.hpp"
+#include <memory>
 #include <wrap/io_trimesh/import.h>
 
-Mesh createMeshFromObj(std::string filename) {
-    Mesh m;
-    // vcg::tri::io::ImporterPLY<Mesh>::Open(m,filename.c_str());
-    //return m;
+std::shared_ptr<Mesh> createMeshFromObj(std::string filename) {
+    auto p = std::make_shared<Mesh>();
+    int loadmask = 0; // TODO no idea what I'm doing here
+    vcg::tri::io::ImporterOBJ<Mesh>::Open(*p, filename.c_str(), loadmask);
+    return p;
 }
