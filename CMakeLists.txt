@@ -17,4 +17,7 @@ set(EXECUTABLE_OUTPUT_PATH
   CACHE PATH
   "Directory for all executables" FORCE)
 
+enable_testing()
+
 add_subdirectory( src )
+add_subdirectory( testing )
