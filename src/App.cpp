@@ -8,6 +8,7 @@
 #include "App.hpp"
 #include "local_coarsening.hpp"
 #include "merging.hpp"
+#include "util.hpp"
 #include "Mesh.hpp"
 
 App::App(int *argc, char ***argv) {
@@ -50,12 +51,7 @@ App::App(int *argc, char ***argv) {
                   << " to "                  << output
                   << "." << std::endl;
     } else {
-        struct oops : std::exception {
-            const char* what() const noexcept{
-                return "no input or output file specified";
-            }
-        };
-        throw oops();
+        THROW_EXCEPTION("no input or output file specified");
     }
 
     if (vm.count("size")) {
@@ -65,6 +61,7 @@ App::App(int *argc, char ***argv) {
 }
 
 void App::run() {
-    // TODO
+    auto sp = createMeshFromOBJ(input);
+    std::cout << "Imported a mesh with " << sp->VN() << " vertices" << std::endl;
 }
 
