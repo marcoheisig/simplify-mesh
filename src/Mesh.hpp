@@ -1,6 +1,7 @@
 /* Copyright (C) Marco Heisig 2014 - GNU GPLv3 or later */
 #pragma once
 #include <string>
+#include <memory>
 #include <vcg/complex/complex.h>
 
 class Vertex;
@@ -31,4 +32,4 @@ class Mesh
                                 std::vector<Face> ,
                                 std::vector<Edge> > {};
 
-void createMeshFromOBJ(std::string filename);
+std::shared_ptr<Mesh> createMeshFromOBJ(std::string filename);

@@ -7,11 +7,9 @@
   - MPI :: message passing interface for distributed computing
   - VCG :: templated graph library
   - Boost :: C++ extensions
-  - CMake :: A softwarebuild system
+  - CMake :: A software build system
 
-  The path of the VCG installation must be specified manually. It is the
-  folder containing apps/ docs/ eigenlib/ img/ vcg/ and wrap/:
-  cmake -DVCG_INCLUDE_DIR=INSERT_VCG_PATH_HERE FOLDER_OF_THIS_README
+  A working copy of VCG is already included. If you want to use your own
+  version instead, specify it with
 
-  For example
-  cmake -DVCG_INCLUDE_DIR=../vcglib ../distributed-polygon-reducer
+  cmake -DVCG_INCLUDE_DIR=INSERT_VCG_PATH_HERE PROJECT_DIR

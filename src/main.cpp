@@ -8,8 +8,8 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     try {
-    App app (&argc, &argv);
-    app.run();
+        App app (&argc, &argv);
+        app.run();
     } catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
     } catch (...) {
