@@ -1,5 +1,5 @@
-/* Copyright (C) Marco Heisig 2014 - GNU GPLv3 or later */
-#include "App.hpp"
+/* Copyright (C) Marco Heisig, Dominik Ernst 2014 - GNU GPLv3 or later */
+#include "Process.hpp"
 #include <iostream>
 #include <exception>
 #include <mpi.h>
@@ -8,8 +8,8 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     try {
-        App app (&argc, &argv);
-        app.run();
+        Process p (&argc, &argv);
+        p.run();
     } catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
     } catch (...) {

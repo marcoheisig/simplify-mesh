@@ -9,10 +9,11 @@ include_directories(SYSTEM ${VCG_INCLUDE_DIR})
 add_executable(
   distributed-polygon-reducer
   main.cpp
-  App.cpp
+  Process.cpp
   local_coarsening.cpp
   merging.cpp
   Mesh.cpp
+  scheduler_static.cpp
   )
 
 target_compile_options(

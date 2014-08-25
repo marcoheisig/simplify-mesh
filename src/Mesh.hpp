@@ -1,4 +1,4 @@
-/* Copyright (C) Marco Heisig 2014 - GNU GPLv3 or later */
+/* Copyright (C) Marco Heisig, Dominik Ernst 2014 - GNU GPLv3 or later */
 #pragma once
 #include <string>
 #include <memory>

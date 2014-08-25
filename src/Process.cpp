@@ -1,17 +1,17 @@
-/* Copyright (C) Marco Heisig 2014 - GNU GPLv3 or later */
+/* Copyright (C) Marco Heisig, Dominik Ernst 2014 - GNU GPLv3 or later */
+#include "Process.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
-#include <exception>
+#include <stdexcept>
 #include <boost/program_options.hpp>
 #include <mpi.h>
-#include "App.hpp"
+#include "scheduler.hpp"
 #include "local_coarsening.hpp"
 #include "merging.hpp"
-#include "util.hpp"
 #include "Mesh.hpp"
 
-App::App(int *argc, char ***argv) {
+Process::Process(int *argc, char ***argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     namespace po = boost::program_options;
@@ -51,7 +51,7 @@ App::App(int *argc, char ***argv) {
                   << " to "                  << output
                   << "." << std::endl;
     } else {
-        THROW_EXCEPTION("no input or output file specified");
+        throw std::runtime_error("no input or output file specified");
     }
 
     if (vm.count("size")) {
@@ -60,8 +60,30 @@ App::App(int *argc, char ***argv) {
     };
 }
 
-void App::run() {
+void Process::run() {
+    Mesh mesh;
     auto sp = createMeshFromOBJ(input);
     std::cout << "Imported a mesh with " << sp->VN() << " vertices" << std::endl;
+
+    bool alive       = true;
+    int  target_rank = 0;
+    int  mpi_tag     = 0;
+    while( alive ) {
+        int job = getWork(rank, mesh, target_rank, mpi_tag);
+        switch( job ) {
+        case GROW:
+            break;
+        case YIELD:
+            break;
+        case READ:
+            break;
+        case DIE:
+            alive = false;
+            break;
+        default:
+            throw std::runtime_error("invalid job");
+            break;
+        }
+    }
 }
 
