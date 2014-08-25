@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <boost/program_options.hpp>
 #include <mpi.h>
-#include "scheduler.hpp"
+#include "StaticScheduler.hpp"
 #include "Mesh.hpp"
 
 Process::Process(int *argc, char ***argv) {
@@ -59,13 +59,25 @@ Process::Process(int *argc, char ***argv) {
 }
 
 void Process::run() {
+    Scheduler* scheduler = new StaticScheduler({{"test1"}, {"test2"}}, 1);
     Mesh mesh;
-    auto sp = createMeshFromOBJ(input);
-    std::cout << "Imported a mesh with " << sp->VN() << " vertices" << std::endl;
+    mesh.readFileOBJ(input);
+    std::cout << "Imported a mesh with " << mesh.VN() << " vertices" << std::endl;
+    mesh.writeFileOBJ(output);
 
-    bool alive       = true;
+    char  *mem;
+    int size;
+    mesh.dump(&size, &mem);
+    std::cout << size / 1000000 << " MB of mesh dumped to memory" << std::endl;
+    Mesh mesh2;
+    mesh2.read(mem);
+    std::cout << "mesh retrieved from memory" << std::endl;
+
+    std::cout << "mesh has " << mesh2.VN() << " vertices after reimport" << std::endl;
+
+    bool alive = true;
     while( alive ) {
-        Job job = getWork(rank, mesh);
+        Job job = scheduler->getWork(rank, mesh);
         switch( job.type ) {
         case Job::GROW:
             // receive

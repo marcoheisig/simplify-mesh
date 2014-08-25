@@ -16,6 +16,7 @@ struct UsedTypes
 class Vertex
     : public vcg::Vertex< UsedTypes,
                           vcg::vertex::Coord3f,
+                          vcg::vertex::Normal3f,
                           vcg::vertex::BitFlags >{};
 
 class Face
@@ -30,6 +31,12 @@ class Edge
 class Mesh
     : public vcg::tri::TriMesh< std::vector<Vertex>,
                                 std::vector<Face> ,
-                                std::vector<Edge> > {};
-
-std::shared_ptr<Mesh> createMeshFromOBJ(std::string filename);
+                                std::vector<Edge> > {
+public:
+    void  readFileOBJ(std::string filename);
+    void writeFileOBJ(std::string filename);
+    void writeFileVMI(std::string filename);
+    void writeFile3DS(std::string filename);
+    void dump(int* size, char** memptr);
+    void read(char* mem);
+};

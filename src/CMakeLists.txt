@@ -11,7 +11,7 @@ add_executable(
   main.cpp
   Process.cpp
   Mesh.cpp
-  scheduler_static.cpp
+  StaticScheduler.cpp
   )
 
 target_compile_options(
