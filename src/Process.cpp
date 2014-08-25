@@ -7,8 +7,6 @@
 #include <boost/program_options.hpp>
 #include <mpi.h>
 #include "scheduler.hpp"
-#include "local_coarsening.hpp"
-#include "merging.hpp"
 #include "Mesh.hpp"
 
 Process::Process(int *argc, char ***argv) {

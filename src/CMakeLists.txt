@@ -10,8 +10,6 @@ add_executable(
   distributed-polygon-reducer
   main.cpp
   Process.cpp
-  local_coarsening.cpp
-  merging.cpp
   Mesh.cpp
   scheduler_static.cpp
   )
