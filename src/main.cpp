@@ -13,7 +13,7 @@ int main(int argc, char **argv)
     } catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
     } catch (...) {
-        std::cerr << "FATAL ERROR" << std::endl;
+        std::cerr << "ERROR: something other than an exception was thrown" << std::endl;
     }
     MPI_Finalize();
 }

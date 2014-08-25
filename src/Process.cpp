@@ -64,18 +64,22 @@ void Process::run() {
     std::cout << "Imported a mesh with " << sp->VN() << " vertices" << std::endl;
 
     bool alive       = true;
-    int  target_rank = 0;
-    int  mpi_tag     = 0;
     while( alive ) {
-        int job = getWork(rank, mesh, target_rank, mpi_tag);
-        switch( job ) {
-        case GROW:
+        Job job = getWork(rank, mesh);
+        switch( job.type ) {
+        case Job::GROW:
+            // receive
+            // merge
+            // coarsen
             break;
-        case YIELD:
+        case Job::YIELD:
+            // send
             break;
-        case READ:
+        case Job::READ:
+            // read from file
+            // coarsen
             break;
-        case DIE:
+        case Job::DIE:
             alive = false;
             break;
         default:
