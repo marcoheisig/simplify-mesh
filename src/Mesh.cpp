@@ -6,34 +6,90 @@
 #include <wrap/io_trimesh/import_obj.h>
 #include <wrap/io_trimesh/export_obj.h>
 #include <wrap/io_trimesh/export_vmi.h>
+#include <vcg/complex/algorithms/local_optimization.h>
+#include <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
 
-void Mesh::readFileOBJ(std::string filename) {
-    Mesh& mesh = *this;
-
-    vcg::tri::io::ImporterOBJ<Mesh>::Info i;
-
-    if (!vcg::tri::io::ImporterOBJ<Mesh>::LoadMask(filename.c_str(), i)) {
-        throw std::runtime_error("failed to load mask during OBJ-file import");
+template <typename IOModule>
+void check(int err) {
+    if(err) {
+        const char *msg = IOModule::ErrorMsg(err);
+        throw std::runtime_error(msg);
     }
-    vcg::tri::io::ImporterOBJ<Mesh>::Open(mesh, filename.c_str(), i);
 }
 
-void Mesh::writeFileOBJ(std::string filename) {
-    vcg::tri::io::ExporterOBJ<Mesh>::Save(*this, filename.c_str(), 0);
-}
-void Mesh::writeFileVMI(std::string filename) {
-    vcg::tri::io::ExporterVMI<Mesh>::Save(*this, filename.c_str());
+/* in OBJ-import both 0 and 1 are ok */
+template <>
+void check<vcg::tri::io::ImporterOBJ<Mesh> >(int err) {
+    typedef vcg::tri::io::ImporterOBJ<Mesh> IOModule;
+    if(err != 0 && err != 1) {
+        const char *msg = IOModule::ErrorMsg(err);
+        throw std::runtime_error(msg);
+    }
 }
 
-void Mesh::dump(int* size, char** memptr) {
-    int len = vcg::tri::io::ExporterVMI<Mesh>::BufferSize(*this);
+void Mesh::readFileOBJ(char * filename) {
+    typedef vcg::tri::io::ImporterOBJ<Mesh> IOModule;
+    IOModule::Info i;
+    check<IOModule>(IOModule::LoadMask(filename, i));
+    check<IOModule>(IOModule::Open(*this, filename, i));
+}
+
+void Mesh::readFileVMI(char * filename) {
+    typedef vcg::tri::io::ImporterVMI<Mesh> IOModule;
+    int mask = 0;
+    check<IOModule>(IOModule::Open(*this, filename, mask));
+}
+
+void Mesh::writeFileOBJ(char * filename) {
+    typedef vcg::tri::io::ExporterOBJ<Mesh> IOModule;
+    check<IOModule>(IOModule::Save(*this, filename, 0));
+}
+
+void Mesh::writeFileVMI(char * filename) {
+    typedef vcg::tri::io::ExporterVMI<Mesh> IOModule;
+    check<IOModule>(IOModule::Save(*this, filename));
+}
+
+void Mesh::dump(int* size, void** memptr) {
+    typedef vcg::tri::io::ExporterVMI<Mesh> IOModule;
+    int len = IOModule::BufferSize(*this);
     char *mem = new char[len];
-    vcg::tri::io::ExporterVMI<Mesh>::DumpToMem(*this, mem);
+    check<IOModule>(IOModule::DumpToMem(*this, mem));
     *size   = len;
     *memptr = mem;
 }
 
-void Mesh::read(char* mem) {
+void Mesh::read(void* mem) {
+    typedef vcg::tri::io::ImporterVMI<Mesh> IOModule;
     int mask = 0;
-    vcg::tri::io::ImporterVMI<Mesh>::ReadFromMem(*this, mask, mem);
+    check<IOModule>(IOModule::ReadFromMem(*this, mask, (char *)mem));
+}
+
+typedef vcg::tri::BasicVertexPair<Vertex> VertexPair;
+class MyTriEdgeCollapse
+    : public vcg::tri::TriEdgeCollapseQuadric<Mesh,
+                                              VertexPair,
+                                              MyTriEdgeCollapse,
+                                              vcg::tri::QInfoStandard<Vertex> >
+{
+public:
+    typedef  vcg::tri::TriEdgeCollapseQuadric<Mesh,
+                                              VertexPair,
+                                              MyTriEdgeCollapse,
+                                              vcg::tri::QInfoStandard<Vertex> > TECQ;
+    typedef  Mesh::VertexType::EdgeType EdgeType;
+    inline MyTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp)
+        : TECQ(p,i,pp){}
+};
+
+void Mesh::simplify(int target_faces) {
+    vcg::tri::TriEdgeCollapseQuadricParameter params;
+    params.FastPreserveBoundary = true;
+    params.PreserveBoundary     = false;
+
+    vcg::LocalOptimization<Mesh> collapse(*this, &params);
+    collapse.Init<MyTriEdgeCollapse>();
+    collapse.SetTargetSimplices(target_faces);
+    while(collapse.DoOptimization() && this->FN() > target_faces) {};
+    collapse.Finalize<MyTriEdgeCollapse>();
 }

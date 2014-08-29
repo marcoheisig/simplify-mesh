@@ -9,7 +9,7 @@ public:
                     size_t num_procs);
 
 
-    Job getWork(int rank, const Mesh& mesh);
+    Task getTask(int rank, const Mesh& mesh);
 private:
     const size_t num_procs;
 };

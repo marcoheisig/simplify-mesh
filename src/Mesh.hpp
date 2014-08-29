@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <vcg/complex/complex.h>
+#include <vcg/math/quadric.h>
 
 class Vertex;
 class Edge;
@@ -15,9 +16,16 @@ struct UsedTypes
 
 class Vertex
     : public vcg::Vertex< UsedTypes,
+                          vcg::vertex::VFAdj,
                           vcg::vertex::Coord3f,
                           vcg::vertex::Normal3f,
-                          vcg::vertex::BitFlags >{};
+                          vcg::vertex::Mark,
+                          vcg::vertex::BitFlags >{
+public:
+    vcg::math::Quadric<double> &Qd() {return q;}
+private:
+    vcg::math::Quadric<double> q;
+};
 
 class Face
     : public vcg::Face< UsedTypes,
@@ -30,13 +38,14 @@ class Edge
 
 class Mesh
     : public vcg::tri::TriMesh< std::vector<Vertex>,
-                                std::vector<Face> ,
-                                std::vector<Edge> > {
+                                std::vector<Face> > {
 public:
-    void  readFileOBJ(std::string filename);
-    void writeFileOBJ(std::string filename);
-    void writeFileVMI(std::string filename);
-    void writeFile3DS(std::string filename);
-    void dump(int* size, char** memptr);
-    void read(char* mem);
+    void readFileOBJ(char * filename);
+    void readFileVMI(char * filename);
+    void writeFileOBJ(char * filename);
+    void writeFileVMI(char * filename);
+    void dump(int* size, void** memptr);
+    void read(void* mem);
+
+    void simplify(int target_faces);
 };

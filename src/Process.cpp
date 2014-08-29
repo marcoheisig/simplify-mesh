@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <cstdlib>
 #include <boost/program_options.hpp>
 #include <mpi.h>
 #include "StaticScheduler.hpp"
@@ -17,20 +18,21 @@ Process::Process(int *argc, char ***argv) {
     desc.add_options()
         ("help", "produce help message")
         ("version", "display version information")
-        ("size,s", po::value<int>()->default_value(50), "set max size in MB")
-        ("input", "input file")
-        ("output", "output file")
+        ("size,s", po::value<int>()->default_value(5000), "set target number of faces")
+        ("input",  po::value<std::vector<std::string> >(), "input files")
+        ("output,o", po::value<std::string>(), "output file")
         // ...
         ;
 
     po::positional_options_description p;
-    p.add("input", 1);
-    p.add("output", 1);
+    p.add("input", -1);
 
     po::variables_map vm;
     po::store(po::command_line_parser(*argc, *argv).
               options(desc).positional(p).run(), vm);
     po::notify(vm);
+
+    if (rank != 0) return;
 
     if (vm.count("help")) {
         std::cout << desc << std::endl;
@@ -42,60 +44,76 @@ Process::Process(int *argc, char ***argv) {
         return;
     }
 
+    std::string outfile;
+    std::vector<std::string> infiles;
     if(vm.count("input") && vm.count("output")) {
-        input = vm["input" ].as<std::string>();
-        output = vm["output"].as<std::string>();
-        std::cout << "converting from file " << input
-                  << " to "                  << output
-                  << "." << std::endl;
+        infiles = vm["input" ].as<std::vector<std::string> >();
+        outfile = vm["output"].as<std::string>();
     } else {
         throw std::runtime_error("no input or output file specified");
     }
 
+    if (infiles.size() == 1) {
+        std::cout << "converting from file " << infiles[0]
+                  << " to "                  << outfile
+                  << "." << std::endl;
+    } else {
+        std::cout << "Merging " << infiles.size() << " files into "
+                  << outfile << "." << std::endl;
+    }
+
     if (vm.count("size")) {
         std::cout << "target mesh size was set to "
-                  << vm["size"].as<int>() << " MB.\n";
+                  << vm["size"].as<int>() << " facess.\n";
+        this->target_faces = vm["size"].as<int>();
+    } else {
+        throw std::runtime_error("no target number of faces specified");
     };
 }
 
 void Process::run() {
     Scheduler* scheduler = new StaticScheduler({{"test1"}, {"test2"}}, 1);
     Mesh mesh;
-    mesh.readFileOBJ(input);
-    std::cout << "Imported a mesh with " << mesh.VN() << " vertices" << std::endl;
-    mesh.writeFileOBJ(output);
+    bool alive;
+    while(alive) {
+        Task task = scheduler->getTask(rank, mesh);
+        switch( task.type ) {
+        case TASK_RECEIVE:
+            {
+            void *mem = malloc(task.receive.size);
+            MPI_Recv(mem, task.receive.size, MPI_BYTE,
+                     task.receive.mpi_rank,
+                     task.receive.mpi_tag,
+                     MPI_COMM_WORLD,
+                     MPI_STATUS_IGNORE);
+            mesh.read(mem);
+            free(mem);
 
-    char  *mem;
-    int size;
-    mesh.dump(&size, &mem);
-    std::cout << size / 1000000 << " MB of mesh dumped to memory" << std::endl;
-    Mesh mesh2;
-    mesh2.read(mem);
-    std::cout << "mesh retrieved from memory" << std::endl;
-
-    std::cout << "mesh has " << mesh2.VN() << " vertices after reimport" << std::endl;
-
-    bool alive = true;
-    while( alive ) {
-        Job job = scheduler->getWork(rank, mesh);
-        switch( job.type ) {
-        case Job::GROW:
-            // receive
-            // merge
-            // coarsen
+            mesh.simplify(target_faces);
+            }
             break;
-        case Job::YIELD:
-            // send
+        case TASK_SEND:
+            {
+            int   size;
+            void *data;
+            mesh.dump(&size, &data);
+            MPI_Send(data, size, MPI_BYTE,
+                     task.send.mpi_rank,
+                     task.send.mpi_tag,
+                     MPI_COMM_WORLD);
+            }
             break;
-        case Job::READ:
-            // read from file
-            // coarsen
+        case TASK_READ:
+            {
+                mesh.readFileOBJ(task.read.filename);
+                mesh.simplify(target_faces);
+            }
             break;
-        case Job::DIE:
+        case TASK_DIE:
             alive = false;
             break;
         default:
-            throw std::runtime_error("invalid job");
+            throw std::runtime_error("invalid task type");
             break;
         }
     }

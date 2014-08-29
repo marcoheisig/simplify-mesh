@@ -8,6 +8,5 @@ public:
     void run();
 private:
     int rank;
-    std::string input;
-    std::string output;
+    int target_faces;
 };
