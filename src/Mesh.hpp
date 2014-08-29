@@ -30,6 +30,7 @@ private:
 class Face
     : public vcg::Face< UsedTypes,
                         vcg::face::FFAdj,
+                        vcg::face::VFAdj,
                         vcg::face::VertexRef,
                         vcg::face::BitFlags > {};
 

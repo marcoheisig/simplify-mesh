@@ -12,11 +12,14 @@ include_directories(
   )
 
 add_executable(mesh_basics mesh_basics.cpp ../src/Mesh.cpp)
-add_executable(mesh_io     mesh_io.cpp ../src/Mesh.cpp)
+add_executable(mesh_io mesh_io.cpp ../src/Mesh.cpp)
+add_executable(mesh_simplify mesh_simplify.cpp ../src/Mesh.cpp)
 
 target_link_libraries(mesh_basics ${Boost_LIBRARIES})
 target_link_libraries(mesh_io     ${Boost_LIBRARIES})
+target_link_libraries(mesh_simplify     ${Boost_LIBRARIES})
 
 add_test(NAME Basics COMMAND mesh_basics)
 add_test(NAME IO     COMMAND mesh_io)
+add_test(NAME Simp   COMMAND mesh_simplify)
 

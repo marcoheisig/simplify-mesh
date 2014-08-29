@@ -17,11 +17,15 @@ void check(int err) {
     }
 }
 
-/* in OBJ-import both 0 and 1 are ok */
+// in ImporterOBJ odd numbers are non-critical errors
 template <>
 void check<vcg::tri::io::ImporterOBJ<Mesh> >(int err) {
     typedef vcg::tri::io::ImporterOBJ<Mesh> IOModule;
     if(err != 0 && err != 1) {
+        if(err & 0x01) { // non critical error
+            std::cerr << "WARNING: " << IOModule::ErrorMsg(err) << std::endl;
+            return;
+        }
         const char *msg = IOModule::ErrorMsg(err);
         throw std::runtime_error(msg);
     }
@@ -83,13 +87,27 @@ public:
 };
 
 void Mesh::simplify(int target_faces) {
+    //vcg::tri::UpdateTopology<Mesh>::VFTopology(*this);
+    vcg::tri::UpdateBounding<Mesh>::Box(*this);
+
     vcg::tri::TriEdgeCollapseQuadricParameter params;
+    params.QualityCheck         = true;
+    params.NormalCheck          = false;
+    params.OptimalPlacement     = true;
+    params.ScaleIndependent     = true;
     params.FastPreserveBoundary = true;
     params.PreserveBoundary     = false;
+    params.PreserveTopology     = false;
+    params.QualityThr           = 0.3;
+    params.NormalThrRad         = 90.0;
+    params.BoundaryWeight       = 0.5;
+    params.QualityWeight        = 0.1;
+    params.QualityQuadric       = false;
 
     vcg::LocalOptimization<Mesh> collapse(*this, &params);
     collapse.Init<MyTriEdgeCollapse>();
     collapse.SetTargetSimplices(target_faces);
+    collapse.SetTimeBudget(0.5f);
     while(collapse.DoOptimization() && this->FN() > target_faces) {};
     collapse.Finalize<MyTriEdgeCollapse>();
 }

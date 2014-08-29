@@ -1,1 +1,4 @@
-#define CMAKE_SOURCE_DIR "@CMAKE_SOURCE_DIR@"
+/* test files */
+char* triangle_obj = "@CMAKE_SOURCE_DIR@/testing/triangle.obj";
+char* big_obj      = "@CMAKE_SOURCE_DIR@/testing/big.obj";
+char* split_mesh   = "@CMAKE_SOURCE_DIR@/testing/split_mesh";
