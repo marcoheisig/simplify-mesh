@@ -69,6 +69,27 @@ void Mesh::read(void* mem) {
     check<IOModule>(IOModule::ReadFromMem(*this, mask, (char *)mem));
 }
 
+
+void Mesh::MPI_Send(int rank, int tag) {
+	std::cout << "mesh sent to " << rank << "\n";
+	/*    typedef vcg::tri::io::ExporterVMI<Mesh> IOModule;
+    int len = IOModule::BufferSize(*this);
+    char *mem = new char[len];
+    check<IOModule>(IOModule::DumpToMem(*this, mem));
+    *size   = len;
+    *memptr = mem;*/
+}
+
+void Mesh::MPI_Recv(int rank, int tag) {
+
+	std::cout << "mesh received from " << rank << "\n";
+	/*    typedef vcg::tri::io::ImporterVMI<Mesh> IOModule;
+    int mask = 0;
+    check<IOModule>(IOModule::ReadFromMem(*this, mask, (char *)mem));*/
+}
+
+
+
 typedef vcg::tri::BasicVertexPair<Vertex> VertexPair;
 class MyTriEdgeCollapse
     : public vcg::tri::TriEdgeCollapseQuadric<Mesh,

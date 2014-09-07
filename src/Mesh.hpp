@@ -47,6 +47,8 @@ public:
     void writeFileVMI(char * filename);
     void dump(int* size, void** memptr);
     void read(void* mem);
+	void MPI_Recv(int rank, int tag);
+	void MPI_Send(int rank, int tag);
 
     void simplify(int target_faces);
 };
