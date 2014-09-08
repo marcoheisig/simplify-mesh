@@ -24,13 +24,10 @@ target_compile_options(
   ${MPI_CXX_COMPILE_FLAGS}
   )
 
-target_link_libraries(mesh_basics ${Boost_LIBRARIES})
-target_link_libraries(mesh_io     ${Boost_LIBRARIES})
-target_link_libraries(mesh_simplify     ${Boost_LIBRARIES})
-target_link_libraries(
-	mesh_send_recv
-	${Boost_LIBRARIES}
-	${MPI_LIBRARIES})
+target_link_libraries(mesh_basics ${Boost_LIBRARIES} ${MPI_LIBRARIES})
+target_link_libraries(mesh_io     ${Boost_LIBRARIES} ${MPI_LIBRARIES})
+target_link_libraries(mesh_simplify     ${Boost_LIBRARIES} ${MPI_LIBRARIES})
+target_link_libraries(mesh_send_recv    ${Boost_LIBRARIES} ${MPI_LIBRARIES})
 
 add_test(NAME Basics COMMAND mesh_basics)
 add_test(NAME IO     COMMAND mesh_io)

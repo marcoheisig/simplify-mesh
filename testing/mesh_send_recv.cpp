@@ -36,12 +36,12 @@ BOOST_AUTO_TEST_CASE( SEND_RECV )
 	mesh1.dump(&size1, &mem1);
 
 	if(rank == 0) {
-		mesh1.MPI_Send(1, 0);
+		mesh1.send(1, 0);
 
 	} else if (rank == 1) {
 		Mesh mesh2;
 
-		mesh2.MPI_Recv( 0, 0);
+		mesh2.recv( 0, 0);
 
 		int size2 = 0;
 		void *mem2 = NULL;

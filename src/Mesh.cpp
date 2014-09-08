@@ -8,6 +8,7 @@
 #include <wrap/io_trimesh/export_vmi.h>
 #include <vcg/complex/algorithms/local_optimization.h>
 #include <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
+#include <mpi.h>
 
 template <typename IOModule>
 void check(int err) {
@@ -70,19 +71,37 @@ void Mesh::read(void* mem) {
 }
 
 
-void Mesh::MPI_Send(int rank, int tag) {
-	std::cout << "mesh sent to " << rank << "\n";
-	/*    typedef vcg::tri::io::ExporterVMI<Mesh> IOModule;
-    int len = IOModule::BufferSize(*this);
-    char *mem = new char[len];
-    check<IOModule>(IOModule::DumpToMem(*this, mem));
-    *size   = len;
-    *memptr = mem;*/
+void Mesh::send(int rank, int tag) {
+
+	int size;
+	char * mem;
+	unique_ptr<char> memptr;
+
+	this->dump(&size, (void**) &mem);
+	memptr.reset(mem);
+
+	MPI_Send( &size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD);
+
+	std::cout << "mesh sent to " << rank << ", size " << size << "B\n";
+
+	MPI_Send( memptr.get(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD);
+
 }
 
-void Mesh::MPI_Recv(int rank, int tag) {
+void Mesh::recv(int rank, int tag) {
 
-	std::cout << "mesh received from " << rank << "\n";
+
+	int size;
+	MPI_Recv(&size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD, nullptr);
+
+
+	std::cout << "mesh received from " << rank << ", size " << size <<  "B\n";
+
+	vector<char> recvBuf( size );
+
+	MPI_Recv(recvBuf.data(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD, nullptr);
+
+	this->read( recvBuf.data() );
 	/*    typedef vcg::tri::io::ImporterVMI<Mesh> IOModule;
     int mask = 0;
     check<IOModule>(IOModule::ReadFromMem(*this, mask, (char *)mem));*/
