@@ -134,18 +134,7 @@ void Mesh::simplify(int target_faces) {
     vcg::tri::UpdateBounding<Mesh>::Box(*this);
 
     vcg::tri::TriEdgeCollapseQuadricParameter params;
-    params.QualityCheck         = true;
-    params.NormalCheck          = false;
-    params.OptimalPlacement     = true;
-    params.ScaleIndependent     = true;
     params.FastPreserveBoundary = true;
-    params.PreserveBoundary     = true;
-    params.PreserveTopology     = false;
-    params.QualityThr           = 0.3;
-    params.NormalThrRad         = 90.0;
-    params.BoundaryWeight       = 0.5;
-    params.QualityWeight        = 0.1;
-    params.QualityQuadric       = false;
 
     vcg::LocalOptimization<Mesh> collapse(*this, &params);
     collapse.Init<MyTriEdgeCollapse>();
