@@ -41,10 +41,10 @@ class Mesh
     : public vcg::tri::TriMesh< std::vector<Vertex>,
                                 std::vector<Face> > {
 public:
-    void readFileOBJ(char * filename);
-    void readFileVMI(char * filename);
-    void writeFileOBJ(char * filename);
-    void writeFileVMI(char * filename);
+    void readFileOBJ(const char * filename);
+    void readFileVMI(const char * filename);
+    void writeFileOBJ(const char * filename);
+    void writeFileVMI(const char * filename);
     void dump(int* size, void** memptr);
     void read(void* mem);
 	void recv(int rank, int tag);

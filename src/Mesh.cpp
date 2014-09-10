@@ -32,25 +32,25 @@ void check<vcg::tri::io::ImporterOBJ<Mesh> >(int err) {
     }
 }
 
-void Mesh::readFileOBJ(char * filename) {
+void Mesh::readFileOBJ(const char * filename) {
     typedef vcg::tri::io::ImporterOBJ<Mesh> IOModule;
     IOModule::Info i;
     check<IOModule>(IOModule::LoadMask(filename, i));
     check<IOModule>(IOModule::Open(*this, filename, i));
 }
 
-void Mesh::readFileVMI(char * filename) {
+void Mesh::readFileVMI(const char * filename) {
     typedef vcg::tri::io::ImporterVMI<Mesh> IOModule;
     int mask = 0;
     check<IOModule>(IOModule::Open(*this, filename, mask));
 }
 
-void Mesh::writeFileOBJ(char * filename) {
+void Mesh::writeFileOBJ(const char * filename) {
     typedef vcg::tri::io::ExporterOBJ<Mesh> IOModule;
     check<IOModule>(IOModule::Save(*this, filename, 0));
 }
 
-void Mesh::writeFileVMI(char * filename) {
+void Mesh::writeFileVMI(const char * filename) {
     typedef vcg::tri::io::ExporterVMI<Mesh> IOModule;
     check<IOModule>(IOModule::Save(*this, filename));
 }

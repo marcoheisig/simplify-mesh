@@ -36,20 +36,18 @@ Process::Process(int *argc, char ***argv) {
               options(desc).positional(p).run(), vm);
     po::notify(vm);
 
-    if (rank != 0) return;
 
     if (vm.count("help")) {
-        std::cout << desc << std::endl;
+        if(rank==0) std::cout << desc << std::endl;
         return;
     }
 
     if (vm.count("version")) {
-        std::cout << "distributed-polygon-reducer v" << 0 << std::endl; // TODO
+        if(rank==0) std::cout << "distributed-polygon-reducer v" << 0 << std::endl; // TODO
         return;
     }
 
     std::string outfile;
-    std::vector<std::string> infiles;
     if(vm.count("input") && vm.count("output")) {
         infiles = vm["input" ].as<std::vector<std::string> >();
         outfile = vm["output"].as<std::string>();
@@ -58,17 +56,17 @@ Process::Process(int *argc, char ***argv) {
     }
 
     if (infiles.size() == 1) {
-        std::cout << "converting from file " << infiles[0]
-                  << " to "                  << outfile
-                  << "." << std::endl;
+        if(rank==0) std::cout << "converting from file " << infiles[0]
+                              << " to "                  << outfile
+                              << "." << std::endl;
     } else {
-        std::cout << "Merging " << infiles.size() << " files into "
-                  << outfile << "." << std::endl;
+        if(rank==0) std::cout << "Merging " << infiles.size() << " files into "
+                              << outfile << "." << std::endl;
     }
 
     if (vm.count("size")) {
-        std::cout << "target mesh size was set to "
-                  << vm["size"].as<int>() << " facess.\n";
+        if(rank==0) std::cout << "target mesh size was set to "
+                              << vm["size"].as<int>() << " facess.\n";
         this->target_faces = vm["size"].as<int>();
     } else {
         throw std::runtime_error("no target number of faces specified");
@@ -77,7 +75,8 @@ Process::Process(int *argc, char ***argv) {
 
 void Process::run() {
 
-    Scheduler* scheduler = new StaticScheduler({{"test4"},{"test4"}, {"test1"}, {"test2"}, {"test3"}}, num_procs);
+
+    Scheduler* scheduler = new StaticScheduler(infiles, num_procs);
     Mesh mesh;
     bool alive = true;
     while(alive) {
@@ -87,7 +86,10 @@ void Process::run() {
             {
 				Mesh recvMesh;
 				recvMesh.recv( task.receive.mpi_rank, task.receive.mpi_tag );
+                cout << rank << ": Merge " << mesh.VN() << " + " << new_mesh.VN() << " = ";
+                cout << mesh.VN() + new_mesh.VN();
 				mesh.merge(recvMesh);
+                cout << " - " << mesh.VN() << "\n";
             }
             break;
         case TASK_SEND:
@@ -97,10 +99,12 @@ void Process::run() {
             break;
         case TASK_READ:
             {
-				/*	Mesh new_mesh;
+				Mesh new_mesh;
 				new_mesh.readFileOBJ( task.read.filename );
-				mesh.merge( new_mesh );*/
-				std::cout << rank << " reads file \"" << task.read.filename << "\"\n";
+				cout << rank << ": Read " << mesh.VN() << " + " << new_mesh.VN() << " = ";
+                cout << mesh.VN() + new_mesh.VN();
+                mesh.merge( new_mesh );
+                cout << " - " << mesh.VN() << "\n";
             }
             break;
         case TASK_DIE:
