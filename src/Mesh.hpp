@@ -51,4 +51,5 @@ public:
 	void send(int rank, int tag);
 
     void simplify(int target_faces);
+	void merge( Mesh & other );
 };

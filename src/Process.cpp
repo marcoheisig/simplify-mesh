@@ -5,13 +5,17 @@
 #include <string>
 #include <stdexcept>
 #include <cstdlib>
+#include <iostream>
 #include <boost/program_options.hpp>
 #include <mpi.h>
 #include "StaticScheduler.hpp"
 #include "Mesh.hpp"
 
+using namespace std;
+
 Process::Process(int *argc, char ***argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
     namespace po = boost::program_options;
     po::options_description desc("options");
@@ -72,41 +76,31 @@ Process::Process(int *argc, char ***argv) {
 }
 
 void Process::run() {
-    Scheduler* scheduler = new StaticScheduler({{"test1"}, {"test2"}}, 1);
+
+    Scheduler* scheduler = new StaticScheduler({{"test4"},{"test4"}, {"test1"}, {"test2"}, {"test3"}}, num_procs);
     Mesh mesh;
-    bool alive;
+    bool alive = true;
     while(alive) {
         Task task = scheduler->getTask(rank, mesh);
         switch( task.type ) {
         case TASK_RECEIVE:
             {
-            void *mem = malloc(task.receive.size);
-            MPI_Recv(mem, task.receive.size, MPI_BYTE,
-                     task.receive.mpi_rank,
-                     task.receive.mpi_tag,
-                     MPI_COMM_WORLD,
-                     MPI_STATUS_IGNORE);
-            mesh.read(mem);
-            free(mem);
-
-            mesh.simplify(target_faces);
+				Mesh recvMesh;
+				recvMesh.recv( task.receive.mpi_rank, task.receive.mpi_tag );
+				mesh.merge(recvMesh);
             }
             break;
         case TASK_SEND:
             {
-            int   size;
-            void *data;
-            mesh.dump(&size, &data);
-            MPI_Send(data, size, MPI_BYTE,
-                     task.send.mpi_rank,
-                     task.send.mpi_tag,
-                     MPI_COMM_WORLD);
+				mesh.send( task.send.mpi_rank, task.send.mpi_tag );
             }
             break;
         case TASK_READ:
             {
-                mesh.readFileOBJ(task.read.filename);
-                mesh.simplify(target_faces);
+				/*	Mesh new_mesh;
+				new_mesh.readFileOBJ( task.read.filename );
+				mesh.merge( new_mesh );*/
+				std::cout << rank << " reads file \"" << task.read.filename << "\"\n";
             }
             break;
         case TASK_DIE:

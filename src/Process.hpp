@@ -8,5 +8,6 @@ public:
     void run();
 private:
     int rank;
+	int num_procs;
     int target_faces;
 };

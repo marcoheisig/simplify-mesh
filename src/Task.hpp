@@ -1,6 +1,7 @@
 /* Copyright (C) Marco Heisig, Dominik Ernst 2014 - GNU GPLv3 or later */
 #pragma once
 #include <string>
+#include <vector>
 
 enum {
     TASK_DIE,
@@ -24,7 +25,7 @@ struct Task_receive {
 };
 
 struct Task_read {
-    char *filename;
+	const char* filename;
 };
 
 struct Task {

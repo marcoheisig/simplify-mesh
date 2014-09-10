@@ -5,11 +5,13 @@
 
 class StaticScheduler : public Scheduler {
 public:
-    StaticScheduler(const std::vector<std::string>& filenames,
-                    size_t num_procs);
+    StaticScheduler( const std::vector<std::string>& filenames,
+                     size_t num_procs);
 
 
     Task getTask(int rank, const Mesh& mesh);
 private:
     const size_t num_procs;
+	int iteration;
+	int filesRead;
 };

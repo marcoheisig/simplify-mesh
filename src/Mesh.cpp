@@ -126,6 +126,12 @@ public:
         : TECQ(p,i,pp){}
 };
 
+void Mesh::merge( Mesh& other ) {
+	vcg::tri::Append<Mesh,Mesh>::Mesh( *this, other);
+	vcg::tri::Clean<Mesh>::MergeCloseVertex( *this, 1.0e-7 );
+
+}
+
 void Mesh::simplify(int target_faces) {
     //vcg::tri::UpdateTopology<Mesh>::VFTopology(*this);
     vcg::tri::UpdateBounding<Mesh>::Box(*this);
