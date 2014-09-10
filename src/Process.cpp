@@ -84,16 +84,18 @@ void Process::run() {
         switch( task.type ) {
         case TASK_RECEIVE:
             {
+                cout << rank << ": receive from " << task.receive.mpi_rank << "\n";
 				Mesh recvMesh;
 				recvMesh.recv( task.receive.mpi_rank, task.receive.mpi_tag );
-                cout << rank << ": Merge " << mesh.VN() << " + " << new_mesh.VN() << " = ";
-                cout << mesh.VN() + new_mesh.VN();
+                cout << rank << ": Merge " << mesh.VN() << " + " << recvMesh.VN() << " = ";
+                cout << mesh.VN() + recvMesh.VN();
 				mesh.merge(recvMesh);
                 cout << " - " << mesh.VN() << "\n";
             }
             break;
         case TASK_SEND:
             {
+                cout << rank << ": send to " << task.send.mpi_rank << "\n";
 				mesh.send( task.send.mpi_rank, task.send.mpi_tag );
             }
             break;
@@ -108,6 +110,11 @@ void Process::run() {
             }
             break;
         case TASK_DIE:
+            alive = false;
+            break;
+        case TASK_IDLE:
+            break;
+        case TASK_WRITE:
             alive = false;
             break;
         default:

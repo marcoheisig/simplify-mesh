@@ -27,8 +27,8 @@ void check<vcg::tri::io::ImporterOBJ<Mesh> >(int err) {
             std::cerr << "WARNING: " << IOModule::ErrorMsg(err) << std::endl;
             return;
         }
-        const char *msg = IOModule::ErrorMsg(err);
-        throw std::runtime_error(msg);
+        //const char *msg = IOModule::ErrorMsg(err);
+        //     throw std::runtime_error(msg);
     }
 }
 
@@ -82,7 +82,6 @@ void Mesh::send(int rank, int tag) {
 
 	MPI_Send( &size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD);
 
-	std::cout << "mesh sent to " << rank << ", size " << size << "B\n";
 
 	MPI_Send( memptr.get(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD);
 
@@ -94,8 +93,6 @@ void Mesh::recv(int rank, int tag) {
 	int size;
 	MPI_Recv(&size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD, nullptr);
 
-
-	std::cout << "mesh received from " << rank << ", size " << size <<  "B\n";
 
 	vector<char> recvBuf( size );
 

@@ -7,11 +7,20 @@ enum {
     TASK_DIE,
     TASK_SEND,
     TASK_RECEIVE,
-    TASK_READ
+    TASK_READ,
+    TASK_IDLE,
+    TASK_WRITE
 };
 
 struct Task_die {
 };
+
+struct Task_idle {
+};
+
+struct Task_write {
+};
+
 
 struct Task_send {
     int mpi_rank;
@@ -35,5 +44,7 @@ struct Task {
         Task_send    send;
         Task_receive receive;
         Task_read    read;
+        Task_idle    idle;
+        Task_write   write;
     };
 };
