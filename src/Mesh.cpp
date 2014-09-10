@@ -139,7 +139,7 @@ void Mesh::simplify(int target_faces) {
     params.OptimalPlacement     = true;
     params.ScaleIndependent     = true;
     params.FastPreserveBoundary = true;
-    params.PreserveBoundary     = false;
+    params.PreserveBoundary     = true;
     params.PreserveTopology     = false;
     params.QualityThr           = 0.3;
     params.NormalThrRad         = 90.0;

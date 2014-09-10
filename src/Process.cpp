@@ -47,7 +47,6 @@ Process::Process(int *argc, char ***argv) {
         return;
     }
 
-    std::string outfile;
     if(vm.count("input") && vm.count("output")) {
         infiles = vm["input" ].as<std::vector<std::string> >();
         outfile = vm["output"].as<std::string>();
@@ -115,6 +114,12 @@ void Process::run() {
         case TASK_IDLE:
             break;
         case TASK_WRITE:
+            cout << rank << ": Write to file\n";
+
+            mesh.simplify( target_faces );
+
+            mesh.writeFileOBJ( outfile.c_str() );
+
             alive = false;
             break;
         default:

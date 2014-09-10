@@ -5,7 +5,7 @@ PROJECT( distributed-polygon-reducer )
 set( CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH} ${distributed-polygon-reducer_SOURCE_DIR}/cmake )
 
-add_definitions("-std=c++0x")
+add_definitions("-std=c++0x -Wall")
 
 if( NOT CMAKE_BUILD_TYPE )
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
