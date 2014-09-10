@@ -89,6 +89,7 @@ void Process::run() {
                 cout << rank << ": Merge " << mesh.VN() << " + " << recvMesh.VN() << " = ";
                 cout << mesh.VN() + recvMesh.VN();
 				mesh.merge(recvMesh);
+                mesh.simplify( mesh.FN() * 0.9 );
                 cout << " - " << mesh.VN() << "\n";
             }
             break;
@@ -105,6 +106,7 @@ void Process::run() {
 				cout << rank << ": Read " << mesh.VN() << " + " << new_mesh.VN() << " = ";
                 cout << mesh.VN() + new_mesh.VN();
                 mesh.merge( new_mesh );
+                mesh.simplify( mesh.FN() - new_mesh.FN()*0.9  );
                 cout << " - " << mesh.VN() << "\n";
             }
             break;
