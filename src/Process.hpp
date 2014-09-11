@@ -11,6 +11,6 @@ private:
     std::vector<std::string> infiles;
     std::string outfile;
     int rank;
-	int num_procs;
+    int num_procs;
     int target_faces;
 };

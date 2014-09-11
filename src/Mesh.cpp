@@ -73,33 +73,33 @@ void Mesh::read(void* mem) {
 
 void Mesh::send(int rank, int tag) {
 
-	int size;
-	char * mem;
-	unique_ptr<char> memptr;
+    int size;
+    char * mem;
+    unique_ptr<char> memptr;
 
-	this->dump(&size, (void**) &mem);
-	memptr.reset(mem);
+    this->dump(&size, (void**) &mem);
+    memptr.reset(mem);
 
-	MPI_Send( &size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD);
+    MPI_Send( &size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD);
 
 
-	MPI_Send( memptr.get(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD);
+    MPI_Send( memptr.get(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD);
 
 }
 
 void Mesh::recv(int rank, int tag) {
 
 
-	int size;
-	MPI_Recv(&size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD, nullptr);
+    int size;
+    MPI_Recv(&size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD, nullptr);
 
 
-	vector<char> recvBuf( size );
+    vector<char> recvBuf( size );
 
-	MPI_Recv(recvBuf.data(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD, nullptr);
+    MPI_Recv(recvBuf.data(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD, nullptr);
 
-	this->read( recvBuf.data() );
-	/*    typedef vcg::tri::io::ImporterVMI<Mesh> IOModule;
+    this->read( recvBuf.data() );
+    /*    typedef vcg::tri::io::ImporterVMI<Mesh> IOModule;
     int mask = 0;
     check<IOModule>(IOModule::ReadFromMem(*this, mask, (char *)mem));*/
 }
@@ -124,8 +124,8 @@ public:
 };
 
 void Mesh::merge( Mesh& other ) {
-	vcg::tri::Append<Mesh,Mesh>::Mesh( *this, other);
-	vcg::tri::Clean<Mesh>::MergeCloseVertex( *this, 1.0e-7 );
+    vcg::tri::Append<Mesh,Mesh>::Mesh( *this, other);
+    vcg::tri::Clean<Mesh>::MergeCloseVertex( *this, 1.0e-7 );
 
 }
 

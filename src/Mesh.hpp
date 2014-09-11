@@ -47,9 +47,9 @@ public:
     void writeFileVMI(const char * filename);
     void dump(int* size, void** memptr);
     void read(void* mem);
-	void recv(int rank, int tag);
-	void send(int rank, int tag);
+    void recv(int rank, int tag);
+    void send(int rank, int tag);
 
     void simplify(int target_faces);
-	void merge( Mesh & other );
+    void merge( Mesh & other );
 };

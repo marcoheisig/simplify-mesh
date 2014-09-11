@@ -15,7 +15,7 @@ using namespace std;
 
 Process::Process(int *argc, char ***argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
     namespace po = boost::program_options;
     po::options_description desc("options");
@@ -84,11 +84,11 @@ void Process::run() {
         case TASK_RECEIVE:
             {
                 cout << rank << ": receive from " << task.receive.mpi_rank << "\n";
-				Mesh recvMesh;
-				recvMesh.recv( task.receive.mpi_rank, task.receive.mpi_tag );
+                Mesh recvMesh;
+                recvMesh.recv( task.receive.mpi_rank, task.receive.mpi_tag );
                 cout << rank << ": Merge " << mesh.VN() << " + " << recvMesh.VN() << " = ";
                 cout << mesh.VN() + recvMesh.VN();
-				mesh.merge(recvMesh);
+                mesh.merge(recvMesh);
                 mesh.simplify( mesh.FN() * 0.9 );
                 cout << " - " << mesh.VN() << "\n";
             }
@@ -96,14 +96,14 @@ void Process::run() {
         case TASK_SEND:
             {
                 cout << rank << ": send to " << task.send.mpi_rank << "\n";
-				mesh.send( task.send.mpi_rank, task.send.mpi_tag );
+                mesh.send( task.send.mpi_rank, task.send.mpi_tag );
             }
             break;
         case TASK_READ:
             {
-				Mesh new_mesh;
-				new_mesh.readFileOBJ( task.read.filename );
-				cout << rank << ": Read " << mesh.VN() << " + " << new_mesh.VN() << " = ";
+                Mesh new_mesh;
+                new_mesh.readFileOBJ( task.read.filename );
+                cout << rank << ": Read " << mesh.VN() << " + " << new_mesh.VN() << " = ";
                 cout << mesh.VN() + new_mesh.VN();
                 mesh.merge( new_mesh );
                 mesh.simplify( mesh.FN() - new_mesh.FN()*0.9  );

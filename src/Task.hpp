@@ -34,7 +34,7 @@ struct Task_receive {
 };
 
 struct Task_read {
-	const char* filename;
+    const char* filename;
 };
 
 struct Task {
