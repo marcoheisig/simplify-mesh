@@ -10,6 +10,8 @@ int main(int argc, char **argv)
     try {
         Process p (&argc, &argv);
         p.run();
+    } catch (StopProgram&) {
+        // NOP - just fall through to MPI_Finalize()
     } catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
     } catch (...) {

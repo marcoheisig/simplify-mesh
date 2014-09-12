@@ -22,6 +22,7 @@ Process::Process(int *argc, char ***argv) {
     desc.add_options()
         ("help", "produce help message")
         ("version", "display version information")
+        ("verbose,v", "emit detailed log messages")
         ("size,s", po::value<int>()->default_value(5000), "set target number of faces")
         ("input",  po::value<std::vector<std::string> >(), "input files")
         ("output,o", po::value<std::string>(), "output file")
@@ -38,13 +39,20 @@ Process::Process(int *argc, char ***argv) {
 
 
     if (vm.count("help")) {
-        if(rank==0) std::cout << desc << std::endl;
-        return;
+        if(rank == 0) std::cout << desc << std::endl;
+        throw StopProgram();
     }
 
     if (vm.count("version")) {
-        if(rank==0) std::cout << "distributed-polygon-reducer v" << 0 << std::endl; // TODO
-        return;
+        if(rank == 0) std::cout << "distributed-polygon-reducer version "
+                                << "0.1" << std::endl; // TODO
+        throw StopProgram();
+    }
+
+    if (vm.count("verbose")) {
+        logging = true;
+    } else {
+        logging = false;
     }
 
     if(vm.count("input") && vm.count("output")) {
@@ -65,7 +73,7 @@ Process::Process(int *argc, char ***argv) {
 
     if (vm.count("size")) {
         if(rank==0) std::cout << "target mesh size was set to "
-                              << vm["size"].as<int>() << " facess.\n";
+                              << vm["size"].as<int>() << " faces.\n";
         this->target_faces = vm["size"].as<int>();
     } else {
         throw std::runtime_error("no target number of faces specified");
@@ -73,8 +81,6 @@ Process::Process(int *argc, char ***argv) {
 }
 
 void Process::run() {
-
-
     Scheduler* scheduler = new StaticScheduler(infiles, num_procs);
     Mesh mesh;
     bool alive = true;
@@ -83,45 +89,56 @@ void Process::run() {
         switch( task.type ) {
         case TASK_RECEIVE:
             {
-                cout << rank << ": receive from " << task.receive.mpi_rank << "\n";
                 Mesh recvMesh;
                 recvMesh.recv( task.receive.mpi_rank, task.receive.mpi_tag );
-                cout << rank << ": Merge " << mesh.VN() << " + " << recvMesh.VN() << " = ";
-                cout << mesh.VN() + recvMesh.VN();
                 mesh.merge(recvMesh);
-                mesh.simplify( mesh.FN() * 0.9 );
-                cout << " - " << mesh.VN() << "\n";
+                mesh.simplify( this->target_faces );
+                if(logging) {
+                    cout << rank << ":"
+                         << " received " << recvMesh.VN() << " vertices"
+                         << " from rank " << task.receive.mpi_rank << "\n";
+                }
             }
             break;
         case TASK_SEND:
             {
-                cout << rank << ": send to " << task.send.mpi_rank << "\n";
                 mesh.send( task.send.mpi_rank, task.send.mpi_tag );
+                if(logging) {
+                    cout << rank << ":"
+                         << " sent " << mesh.VN() << " vertices"
+                         << " to rank " << task.send.mpi_rank << "\n";
+                }
             }
             break;
         case TASK_READ:
             {
                 Mesh new_mesh;
                 new_mesh.readFileOBJ( task.read.filename );
-                cout << rank << ": Read " << mesh.VN() << " + " << new_mesh.VN() << " = ";
-                cout << mesh.VN() + new_mesh.VN();
-                mesh.merge( new_mesh );
-                mesh.simplify( mesh.FN() - new_mesh.FN()*0.9  );
-                cout << " - " << mesh.VN() << "\n";
+                mesh.merge(new_mesh);
+                mesh.simplify( this->target_faces );
+                if(logging) {
+                    cout << rank << ":"
+                         << " read " << new_mesh.VN() << " vertices"
+                         << " from " << task.read.filename
+                         << " (" << mesh.VN() << " after simplification)\n";
+                }
             }
             break;
         case TASK_DIE:
             alive = false;
+            if(logging) cout << rank << ": finished\n";
             break;
         case TASK_IDLE:
             break;
         case TASK_WRITE:
-            cout << rank << ": Write to file\n";
-
-            mesh.simplify( target_faces );
-
+            mesh.simplify( this->target_faces );
             mesh.writeFileOBJ( outfile.c_str() );
-
+            if(logging) {
+                cout << rank << ":"
+                     << " wrote " << mesh.VN() << " vertices"
+                     << " to " << outfile.c_str() << "\n";
+                cout << rank << ": finished\n";
+            }
             alive = false;
             break;
         default:

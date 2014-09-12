@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+class StopProgram : public std::exception { };
+
 class Process {
 public:
     Process(int *argc, char ***argv);
@@ -10,7 +12,8 @@ public:
 private:
     std::vector<std::string> infiles;
     std::string outfile;
-    int rank;
-    int num_procs;
-    int target_faces;
+    int  rank;
+    int  num_procs;
+    int  target_faces;
+    bool logging;
 };
