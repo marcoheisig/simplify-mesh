@@ -1,6 +1,6 @@
 find_package(MPI REQUIRED)
-find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(VCG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options system thread)
 
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})

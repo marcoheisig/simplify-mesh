@@ -14,6 +14,7 @@ private:
     std::string outfile;
     int  rank;
     int  num_procs;
+    int  max_faces;
     int  target_faces;
     bool logging;
 };

@@ -117,8 +117,9 @@ void Mesh::merge( Mesh& other ) {
 }
 
 void Mesh::simplify(int target_faces) {
-    vcg::tri::UpdateBounding<Mesh>::Box(*this);
+    if(target_faces > this->FN()) return;
 
+    vcg::tri::UpdateBounding<Mesh>::Box(*this);
     vcg::tri::TriEdgeCollapseQuadricParameter params;
     params.FastPreserveBoundary = true;
 
@@ -128,4 +129,7 @@ void Mesh::simplify(int target_faces) {
     collapse.SetTimeBudget(0.5f);
     while(collapse.DoOptimization() && this->FN() > target_faces) {};
     collapse.Finalize<MyTriEdgeCollapse>();
+
+    vcg::tri::Allocator<Mesh>::CompactFaceVector(*this);
+    vcg::tri::Allocator<Mesh>::CompactVertexVector(*this);
 }
