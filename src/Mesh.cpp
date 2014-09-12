@@ -27,8 +27,8 @@ void check<vcg::tri::io::ImporterOBJ<Mesh> >(int err) {
             std::cerr << "WARNING: " << IOModule::ErrorMsg(err) << std::endl;
             return;
         }
-        //const char *msg = IOModule::ErrorMsg(err);
-        //     throw std::runtime_error(msg);
+        const char *msg = IOModule::ErrorMsg(err);
+        throw std::runtime_error(msg);
     }
 }
 
@@ -72,7 +72,6 @@ void Mesh::read(void* mem) {
 
 
 void Mesh::send(int rank, int tag) {
-
     int size;
     char * mem;
     unique_ptr<char> memptr;
@@ -81,27 +80,16 @@ void Mesh::send(int rank, int tag) {
     memptr.reset(mem);
 
     MPI_Send( &size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD);
-
-
     MPI_Send( memptr.get(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD);
-
 }
 
 void Mesh::recv(int rank, int tag) {
-
-
     int size;
     MPI_Recv(&size, 1, MPI_INT, rank, tag, MPI_COMM_WORLD, nullptr);
 
-
     vector<char> recvBuf( size );
-
     MPI_Recv(recvBuf.data(), size, MPI_CHAR, rank, tag, MPI_COMM_WORLD, nullptr);
-
     this->read( recvBuf.data() );
-    /*    typedef vcg::tri::io::ImporterVMI<Mesh> IOModule;
-    int mask = 0;
-    check<IOModule>(IOModule::ReadFromMem(*this, mask, (char *)mem));*/
 }
 
 
@@ -124,13 +112,11 @@ public:
 };
 
 void Mesh::merge( Mesh& other ) {
-    vcg::tri::Append<Mesh,Mesh>::Mesh( *this, other);
-    vcg::tri::Clean<Mesh>::MergeCloseVertex( *this, 1.0e-7 );
-
+    vcg::tri::Append<Mesh,Mesh>::Mesh(*this, other);
+    vcg::tri::Clean<Mesh>::MergeCloseVertex(*this, 1.0e-7);
 }
 
 void Mesh::simplify(int target_faces) {
-    //vcg::tri::UpdateTopology<Mesh>::VFTopology(*this);
     vcg::tri::UpdateBounding<Mesh>::Box(*this);
 
     vcg::tri::TriEdgeCollapseQuadricParameter params;

@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE( SEND_RECV )
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    BOOST_CHECK( size>1 );
+    BOOST_CHECK(size > 1);
 
     cout << rank << "/" <<  size << "\n";
 
