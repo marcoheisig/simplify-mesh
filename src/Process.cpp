@@ -9,6 +9,11 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/thread/thread.hpp>
+#include <vcg/complex/complex.h>
+#include <vcg/complex/algorithms/update/flag.h>
+#include <vcg/complex/algorithms/update/topology.h>
+#include <vcg/complex/algorithms/update/bounding.h>
+#include <vcg/complex/algorithms/clean.h>
 #include <mpi.h>
 #include "StaticScheduler.hpp"
 #include "Mesh.hpp"
@@ -26,7 +31,6 @@ Process::Process(int *argc, char ***argv) {
         ("version", "display version information")
         ("verbose,v", "emit detailed log messages")
         ("size,s", po::value<int>()->default_value(5000), "set target number of faces")
-        ("limit,l", po::value<int>(), "set the maximum number of faces per node")
         ("input,i",  po::value<std::vector<std::string> >(), "input files")
         ("output,o", po::value<std::string>(), "output file")
         // ...
@@ -81,12 +85,6 @@ Process::Process(int *argc, char ***argv) {
     } else {
         throw std::runtime_error("no target number of faces specified");
     };
-
-    if (vm.count("limit")) {
-        this->max_faces = vm["limit"].as<int>();
-    } else {
-        this->max_faces = this->target_faces * 2;
-    }
 }
 
 void Process::run() {
@@ -101,14 +99,25 @@ void Process::run() {
                 Mesh recvMesh;
                 recvMesh.recv( task.receive.mpi_rank, task.receive.mpi_tag );
                 mesh.merge(recvMesh);
-                mesh.simplify( this->max_faces );
+                vcg::tri::UpdateBounding<Mesh>::Box(mesh);
+                vcg::tri::UpdateTopology<Mesh>::FaceFace(mesh);
+                vcg::tri::UpdateTopology<Mesh>::VertexFace(mesh);
+                vcg::tri::UpdateFlags<Mesh>::FaceBorderFromFF(mesh);
+                vcg::tri::UpdateFlags<Mesh>::FaceBorderFromVF(mesh);
+                vcg::tri::UpdateFlags<Mesh>::VertexBorderFromFace(mesh);
+                mesh.simplify( this->target_faces, true);
                 if(logging) printf("%2d: received %d faces from rank %d\n",
                                    rank, recvMesh.FN(), task.receive.mpi_rank);
             }
             break;
         case TASK_SEND:
             {
+                vcg::tri::Allocator<Mesh>::CompactFaceVector(mesh);
+                vcg::tri::Allocator<Mesh>::CompactVertexVector(mesh);
                 mesh.send( task.send.mpi_rank, task.send.mpi_tag );
+                char buf[100];
+                snprintf(buf, 100, "out_%d.obj", rank);
+                mesh.writeFileOBJ(buf);
                 if(logging) printf("%2d: sent %d faces to rank %d\n",
                                    rank, mesh.FN(), task.send.mpi_rank);
             }
@@ -118,7 +127,15 @@ void Process::run() {
                 Mesh new_mesh;
                 new_mesh.readFileOBJ( task.read.filename );
                 mesh.merge(new_mesh);
-                mesh.simplify( this->max_faces );
+                vcg::tri::UpdateBounding<Mesh>::Box(mesh);
+                vcg::tri::UpdateTopology<Mesh>::FaceFace(mesh);
+                vcg::tri::UpdateTopology<Mesh>::VertexFace(mesh);
+                vcg::tri::UpdateFlags<Mesh>::FaceBorderFromFF(mesh);
+                vcg::tri::UpdateFlags<Mesh>::FaceBorderFromVF(mesh);
+                vcg::tri::UpdateFlags<Mesh>::VertexBorderFromFace(mesh);
+                vcg::tri::Clean<Mesh>::RemoveNonManifoldVertex(mesh);
+                vcg::tri::Clean<Mesh>::RemoveNonManifoldFace(mesh);
+                mesh.simplify( this->target_faces, true);
                 if(logging) printf("%2d: read %d faces from %s\n",
                                    rank, new_mesh.FN(), task.read.filename);
             }
@@ -136,7 +153,7 @@ void Process::run() {
                 break;
             }
         case TASK_WRITE:
-            mesh.simplify( this->target_faces );
+            mesh.simplify( this->target_faces, false);
             mesh.writeFileOBJ( outfile.c_str() );
 
             if(logging) printf("%2d: wrote %d faces to %s\n",

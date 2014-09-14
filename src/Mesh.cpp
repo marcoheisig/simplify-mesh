@@ -116,15 +116,26 @@ void Mesh::merge( Mesh& other ) {
     vcg::tri::Clean<Mesh>::MergeCloseVertex(*this, 1.0e-7);
 }
 
-void Mesh::simplify(int target_faces) {
+void Mesh::simplify(int target_faces, bool preserve_boundary) {
+    // take into account, that the boundary faces cannot be refined
+    if(preserve_boundary) {
+        Mesh::VertexIterator vi;
+        int bv = 0;
+        for(vi = this->vert.begin(); vi != this->vert.end(); ++vi) {
+            if(vi->IsD()) continue;
+            if(vi->IsB()) ++bv;
+        }
+        target_faces += bv;
+    }
     if(target_faces > this->FN()) return;
 
-    vcg::tri::UpdateBounding<Mesh>::Box(*this);
     vcg::tri::TriEdgeCollapseQuadricParameter params;
-    params.FastPreserveBoundary = true;
+    params.PreserveBoundary     = preserve_boundary;
+    params.BoundaryWeight       = 999;
 
     vcg::LocalOptimization<Mesh> collapse(*this, &params);
     collapse.Init<MyTriEdgeCollapse>();
+
     collapse.SetTargetSimplices(target_faces);
     collapse.SetTimeBudget(0.5f);
     while(collapse.DoOptimization() && this->FN() > target_faces) {};

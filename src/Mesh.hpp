@@ -50,6 +50,7 @@ public:
     void recv(int rank, int tag);
     void send(int rank, int tag);
 
-    void simplify(int target_faces);
+    void simplify(int target_faces,
+                  bool preserve_boundary = true);
     void merge( Mesh & other );
 };
