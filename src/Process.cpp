@@ -62,11 +62,16 @@ Process::Process(int *argc, char ***argv) {
         logging = false;
     }
 
-    if(vm.count("input") && vm.count("output")) {
-        infiles = vm["input" ].as<std::vector<std::string> >();
+    if(vm.count("output")) {
         outfile = vm["output"].as<std::string>();
     } else {
-        throw std::runtime_error("no input or output file specified");
+        throw std::runtime_error("no output file specified");
+    }
+
+    if(vm.count("input")) {
+        infiles = vm["input" ].as<std::vector<std::string> >();
+    } else {
+        throw std::runtime_error("no input files specified");
     }
 
     if (infiles.size() == 1) {

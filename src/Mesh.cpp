@@ -22,14 +22,16 @@ void check(int err) {
 template <>
 void check<vcg::tri::io::ImporterOBJ<Mesh> >(int err) {
     typedef vcg::tri::io::ImporterOBJ<Mesh> IOModule;
-    if(err != 0 && err != 1) {
-        if(err & 0x01) { // non critical error
-            std::cerr << "WARNING: " << IOModule::ErrorMsg(err) << std::endl;
-            return;
-        }
-        const char *msg = IOModule::ErrorMsg(err);
-        throw std::runtime_error(msg);
+
+    if( err == IOModule::OBJError::E_NON_CRITICAL_ERROR ||
+        err == IOModule::OBJError::E_NOERROR ) return;
+    if( err == IOModule::OBJError::E_NO_VERTEX ||
+        err == IOModule::OBJError::E_NO_FACE ) {
+        std::cerr << "WARNING: " << IOModule::ErrorMsg(err) << std::endl;
+        return;
     }
+    const char *msg = IOModule::ErrorMsg(err);
+    throw std::runtime_error(msg);
 }
 
 void Mesh::readFileOBJ(const char * filename) {
