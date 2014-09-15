@@ -30,11 +30,18 @@ Process::Process(int *argc, char ***argv) {
         ("help", "produce help message")
         ("version", "display version information")
         ("verbose,v", "emit detailed log messages")
-        ("size,s", po::value<int>()->default_value(5000), "set target number of faces")
-        ("input,i",  po::value<std::vector<std::string> >(), "input files")
-        ("output,o", po::value<std::string>(), "output file")
-        // ...
-        ;
+        ("size,s",
+         po::value<int>()->default_value(5000),
+         "set target number of faces")
+        ("merge-tolerance,m",
+         po::value<float>()->default_value(1.0e-7f),
+         "tolerance for merging mesh boundaries")
+        ("input,i",
+         po::value<std::vector<std::string> >(),
+         "input files")
+        ("output,o",
+         po::value<std::string>(),
+         "output file");
 
     po::positional_options_description p;
     p.add("input", -1);
@@ -90,6 +97,12 @@ Process::Process(int *argc, char ***argv) {
     } else {
         throw std::runtime_error("no target number of faces specified");
     };
+
+    if (vm.count("merge-tolerance")) {
+        this->merge_tolerance = vm["merge-tolerance"].as<float>();
+    } else {
+        throw std::runtime_error("no target number of faces specified");
+    };
 }
 
 void Process::run() {
@@ -103,7 +116,7 @@ void Process::run() {
             {
                 Mesh recvMesh;
                 recvMesh.recv( task.receive.mpi_rank, task.receive.mpi_tag );
-                mesh.merge(recvMesh);
+                mesh.merge(recvMesh, merge_tolerance);
                 vcg::tri::UpdateBounding<Mesh>::Box(mesh);
                 vcg::tri::UpdateTopology<Mesh>::FaceFace(mesh);
                 vcg::tri::UpdateTopology<Mesh>::VertexFace(mesh);
@@ -131,7 +144,7 @@ void Process::run() {
             {
                 Mesh new_mesh;
                 new_mesh.readFileOBJ( task.read.filename );
-                mesh.merge(new_mesh);
+                mesh.merge(new_mesh, merge_tolerance);
                 vcg::tri::UpdateBounding<Mesh>::Box(mesh);
                 vcg::tri::UpdateTopology<Mesh>::FaceFace(mesh);
                 vcg::tri::UpdateTopology<Mesh>::VertexFace(mesh);

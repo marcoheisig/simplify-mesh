@@ -10,7 +10,9 @@ add_executable(
   distributed-polygon-reducer
   main.cpp
   Process.cpp
-  Mesh.cpp
+  Mesh_base.cpp
+  Mesh_io.cpp
+  Mesh_simplify.cpp
   StaticScheduler.cpp
   )
 

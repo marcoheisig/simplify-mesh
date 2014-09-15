@@ -13,10 +13,22 @@ include_directories(
   SYSTEM ${MPI_INCLUDE_PATH}
   )
 
-add_executable(mesh_basics    mesh_basics.cpp    ../src/Mesh.cpp)
-add_executable(mesh_io        mesh_io.cpp        ../src/Mesh.cpp)
-add_executable(mesh_send_recv mesh_send_recv.cpp ../src/Mesh.cpp)
-add_executable(mesh_simplify  mesh_simplify.cpp  ../src/Mesh.cpp)
+add_executable(mesh_basics
+  mesh_basics.cpp
+  ../src/Mesh_base.cpp)
+add_executable(mesh_io
+  mesh_io.cpp
+  ../src/Mesh_base.cpp
+  ../src/Mesh_io.cpp)
+add_executable(mesh_send_recv
+  mesh_send_recv.cpp
+  ../src/Mesh_base.cpp
+  ../src/Mesh_io.cpp)
+add_executable(mesh_simplify
+  mesh_simplify.cpp
+  ../src/Mesh_base.cpp
+  ../src/Mesh_io.cpp
+  ../src/Mesh_simplify.cpp)
 
 target_compile_options(
   mesh_send_recv

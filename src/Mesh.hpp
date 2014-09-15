@@ -52,5 +52,5 @@ public:
 
     void simplify(int target_faces,
                   bool preserve_boundary = true);
-    void merge( Mesh & other );
+    void merge(Mesh & other, float tolerance);
 };
