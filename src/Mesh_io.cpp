@@ -18,7 +18,6 @@ void check(int err) {
     }
 }
 
-// in ImporterOBJ odd numbers are non-critical errors
 template <>
 void check<vcg::tri::io::ImporterOBJ<Mesh> >(int err) {
     typedef vcg::tri::io::ImporterOBJ<Mesh> IOModule;

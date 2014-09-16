@@ -1,9 +1,9 @@
 CMAKE_MINIMUM_REQUIRED ( VERSION 2.6 )
 
-PROJECT( distributed-polygon-reducer )
+PROJECT( simplify-mesh )
 
 set( CMAKE_MODULE_PATH
-  ${CMAKE_MODULE_PATH} ${distributed-polygon-reducer_SOURCE_DIR}/cmake )
+  ${CMAKE_MODULE_PATH} ${simplify-mesh_SOURCE_DIR}/cmake )
 
 add_definitions("-std=c++0x -Wall")
 

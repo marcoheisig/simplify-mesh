@@ -7,7 +7,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 include_directories(SYSTEM ${VCG_INCLUDE_DIR})
 
 add_executable(
-  distributed-polygon-reducer
+  simplify-mesh
   main.cpp
   Process.cpp
   Mesh_base.cpp
@@ -17,13 +17,13 @@ add_executable(
   )
 
 target_compile_options(
-  distributed-polygon-reducer
+  simplify-mesh
   PUBLIC
   ${MPI_CXX_COMPILE_FLAGS}
   )
 
 target_link_libraries(
-  distributed-polygon-reducer
+  simplify-mesh
   ${MPI_LIBRARIES}
   ${Boost_LIBRARIES}
   )
