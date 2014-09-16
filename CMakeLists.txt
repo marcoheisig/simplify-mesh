@@ -1,6 +1,7 @@
 CMAKE_MINIMUM_REQUIRED ( VERSION 2.6 )
 
 PROJECT( simplify-mesh )
+set( simplify-mesh_VERSION "1.0")
 
 set( CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH} ${simplify-mesh_SOURCE_DIR}/cmake )

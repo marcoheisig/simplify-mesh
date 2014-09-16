@@ -17,6 +17,7 @@
 #include <mpi.h>
 #include "StaticScheduler.hpp"
 #include "Mesh.hpp"
+#include "Version.hpp"
 
 using namespace std;
 
@@ -53,13 +54,18 @@ Process::Process(int *argc, char ***argv) {
 
 
     if (vm.count("help")) {
-        if(rank == 0) std::cout << desc << std::endl;
+        if(rank == 0) {
+            std::cout << "simplify-mesh " << version << std::endl;
+            std::cout << desc << std::endl;
+        }
         throw StopProgram();
     }
 
     if (vm.count("version")) {
-        if(rank == 0) std::cout << "distributed-polygon-reducer version "
-                                << "0.1" << std::endl; // TODO
+        if(rank == 0) {
+            std::cout << "simplify-mesh " << version << std::endl;
+        }
+
         throw StopProgram();
     }
 
