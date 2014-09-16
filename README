@@ -2,6 +2,19 @@
   This tool allows to collect and coarsen a surface mesh that may be
   distributed across a cluster. The communication is performed via MPI.
 
+* Usage
+  The easiest usage is
+  ./simplify-mesh input_file1.obj input_file2.obj ... -o output_file.obj
+
+  To control the behaviour of the program see the flags presented by
+  ./simplify-mesh --help
+
+  To run the program in parallel use
+  mpirun -np NUMBER_OF_PROCESSES ./simplify-mesh ARGS
+
+  Note: Specifying more processes than input files has no beneficial effect -
+  the excess processes are immediately terminated.
+
 * Installation
   The following components are necessary to build the tool:
   - MPI :: message passing interface for distributed computing
