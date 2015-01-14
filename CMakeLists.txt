@@ -6,7 +6,7 @@ set( simplify-mesh_VERSION "1.0")
 set( CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH} ${simplify-mesh_SOURCE_DIR}/cmake )
 
-add_definitions("-std=c++0x -Wall")
+add_definitions("-std=c++0x -Wall -fopenmp")
 
 if( NOT CMAKE_BUILD_TYPE )
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING

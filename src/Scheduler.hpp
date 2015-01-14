@@ -8,7 +8,7 @@ protected:
     Scheduler(const std::vector<std::string>& filenames)
         : filenames(filenames) {}
 public:
-    virtual Task getTask(int rank, const Mesh& mesh) = 0;
+    virtual Task getTask(int rank, int iteration, const Mesh& mesh) = 0;
 
     const std::vector<std::string> filenames;
 };

@@ -34,17 +34,15 @@ struct Task_receive {
 };
 
 struct Task_read {
-    const char* filename;
+    std::vector<std::string> filenames;
 };
 
 struct Task {
     int type;
-    union {
-        Task_die     die;
-        Task_send    send;
-        Task_receive receive;
-        Task_read    read;
-        Task_idle    idle;
-        Task_write   write;
-    };
+    Task_die     die;
+    Task_send    send;
+    Task_receive receive;
+    Task_read    read;
+    Task_idle    idle;
+    Task_write   write;
 };

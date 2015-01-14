@@ -9,9 +9,7 @@ public:
                      size_t num_procs);
 
 
-    Task getTask(int rank, const Mesh& mesh);
+    Task getTask(int rank, int iteration, const Mesh& mesh);
 private:
     const size_t num_procs;
-    int iteration;
-    int filesRead;
 };
