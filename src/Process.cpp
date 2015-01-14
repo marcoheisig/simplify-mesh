@@ -141,8 +141,6 @@ void Process::run() {
                 vcg::tri::Allocator<Mesh>::CompactVertexVector(mesh);
                 mesh.send( task.send.mpi_rank, task.send.mpi_tag );
                 char buf[100];
-                snprintf(buf, 100, "out_%d.obj", rank);
-                mesh.writeFileOBJ(buf);
                 if(logging) printf("%2d: sent %d faces to rank %d\n",
                                    rank, mesh.FN(), task.send.mpi_rank);
             }
