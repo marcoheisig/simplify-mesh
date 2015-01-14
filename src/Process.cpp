@@ -115,8 +115,9 @@ void Process::run() {
     Scheduler* scheduler = new StaticScheduler(infiles, num_procs);
     Mesh mesh;
     bool alive = true;
+    int iteration = 0;
     while(alive) {
-        Task task = scheduler->getTask(rank, mesh);
+        Task task = scheduler->getTask(rank, iteration++,  mesh);
         switch( task.type ) {
         case TASK_RECEIVE:
             {
@@ -140,28 +141,28 @@ void Process::run() {
                 vcg::tri::Allocator<Mesh>::CompactVertexVector(mesh);
                 mesh.send( task.send.mpi_rank, task.send.mpi_tag );
                 char buf[100];
-                snprintf(buf, 100, "out_%d.obj", rank);
-                mesh.writeFileOBJ(buf);
                 if(logging) printf("%2d: sent %d faces to rank %d\n",
                                    rank, mesh.FN(), task.send.mpi_rank);
             }
             break;
         case TASK_READ:
             {
-                Mesh new_mesh;
-                new_mesh.readFileOBJ( task.read.filename );
-                mesh.merge(new_mesh, merge_tolerance);
-                vcg::tri::UpdateBounding<Mesh>::Box(mesh);
-                vcg::tri::UpdateTopology<Mesh>::FaceFace(mesh);
-                vcg::tri::UpdateTopology<Mesh>::VertexFace(mesh);
-                vcg::tri::UpdateFlags<Mesh>::FaceBorderFromFF(mesh);
-                vcg::tri::UpdateFlags<Mesh>::FaceBorderFromVF(mesh);
-                vcg::tri::UpdateFlags<Mesh>::VertexBorderFromFace(mesh);
-                vcg::tri::Clean<Mesh>::RemoveNonManifoldVertex(mesh);
-                vcg::tri::Clean<Mesh>::RemoveNonManifoldFace(mesh);
-                mesh.simplify( this->target_faces, true);
-                if(logging) printf("%2d: read %d faces from %s\n",
-                                   rank, new_mesh.FN(), task.read.filename);
+                for( const auto& filename : task.read.filenames) {
+                    Mesh new_mesh;
+                    new_mesh.readFileOBJ( filename.c_str() );
+                    mesh.merge(new_mesh, merge_tolerance);
+                    vcg::tri::UpdateBounding<Mesh>::Box(mesh);
+                    vcg::tri::UpdateTopology<Mesh>::FaceFace(mesh);
+                    vcg::tri::UpdateTopology<Mesh>::VertexFace(mesh);
+                    vcg::tri::UpdateFlags<Mesh>::FaceBorderFromFF(mesh);
+                    vcg::tri::UpdateFlags<Mesh>::FaceBorderFromVF(mesh);
+                    vcg::tri::UpdateFlags<Mesh>::VertexBorderFromFace(mesh);
+                    vcg::tri::Clean<Mesh>::RemoveNonManifoldVertex(mesh);
+                    vcg::tri::Clean<Mesh>::RemoveNonManifoldFace(mesh);
+                    mesh.simplify( this->target_faces, true);
+                    if(logging) printf("%2d: read %d faces from %s\n",
+                                       rank, new_mesh.FN(), filename.c_str());
+                }
             }
             break;
         case TASK_DIE:

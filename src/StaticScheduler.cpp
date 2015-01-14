@@ -7,30 +7,28 @@ using namespace std;
 StaticScheduler::StaticScheduler(const std::vector<std::string>& filenames,
                                  size_t num_procs)
     : Scheduler(filenames),
-      num_procs(num_procs),
-      iteration(0),
-      filesRead(0) {
+      num_procs(num_procs) {
 }
 
-Task StaticScheduler::getTask(int rank, const Mesh& mesh) {
+Task StaticScheduler::getTask(int rank, int iteration, const Mesh& mesh)  {
 
 
     Task t = { TASK_DIE };
 
-    if( rank < (int) filenames.size() - filesRead ) {
+    if( iteration == 0) {
         t = { TASK_READ };
-        t.read.filename = filenames[filesRead+rank].c_str();
-        filesRead += num_procs;
+        for( size_t i = rank; i < filenames.size(); i+= num_procs) {
+            t.read.filenames.push_back(filenames[i]);
+        }
         return t;
     }
 
 
-
-    if( rank % (int) pow(2, iteration+1) == 0 ) {
-        if( rank+pow(2, iteration) < num_procs ) {
+    if( rank % (int) pow(2, iteration) == 0 ) {
+        if( rank+pow(2, iteration-1) < num_procs ) {
             t = {TASK_RECEIVE};
             t.receive.mpi_tag = iteration;
-            t.receive.mpi_rank = rank+pow(2, iteration);
+            t.receive.mpi_rank = rank+pow(2, iteration-1);
         } else {
             if( rank == 0) {
                 t = {TASK_WRITE};
@@ -38,17 +36,13 @@ Task StaticScheduler::getTask(int rank, const Mesh& mesh) {
                 t = {TASK_IDLE};
             }
         }
-    }
-
-    if( rank % (int) pow(2, iteration+1) == pow(2, iteration) ) {
+    } else  if( rank % (int) pow(2, iteration-1) == 0 ) {
         t = {TASK_SEND};
-        t.receive.mpi_tag = iteration;
-        t.receive.mpi_rank = rank-pow(2, iteration);
+        t.send.mpi_tag = iteration;
+        t.send.mpi_rank = rank-pow(2, iteration-1);
     }
 
 
-
-    iteration++;
     return t;
 }
 

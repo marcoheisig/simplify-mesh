@@ -29,6 +29,9 @@ add_executable(mesh_simplify
   ../src/Mesh_base.cpp
   ../src/Mesh_io.cpp
   ../src/Mesh_simplify.cpp)
+ add_executable(scheduler
+  scheduler_test.cpp
+  ../src/StaticScheduler.cpp)
 
 target_compile_options(
   mesh_send_recv
@@ -40,9 +43,11 @@ target_link_libraries(mesh_basics    ${Boost_LIBRARIES} ${MPI_LIBRARIES})
 target_link_libraries(mesh_io        ${Boost_LIBRARIES} ${MPI_LIBRARIES})
 target_link_libraries(mesh_send_recv ${Boost_LIBRARIES} ${MPI_LIBRARIES})
 target_link_libraries(mesh_simplify  ${Boost_LIBRARIES} ${MPI_LIBRARIES})
+target_link_libraries(scheduler      ${Boost_LIBRARIES} ${MPI_LIBRARIES} -fopenmp)
 
 add_test(NAME Basics   COMMAND mesh_basics)
 add_test(NAME IO       COMMAND mesh_io)
 add_test(NAME SendRecv COMMAND mpirun -np 2 ../mesh_send_recv)
 add_test(NAME Simp     COMMAND mesh_simplify)
+add_test(NAME Scheduler     COMMAND scheduler)
 
