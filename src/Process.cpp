@@ -140,7 +140,6 @@ void Process::run() {
                 vcg::tri::Allocator<Mesh>::CompactFaceVector(mesh);
                 vcg::tri::Allocator<Mesh>::CompactVertexVector(mesh);
                 mesh.send( task.send.mpi_rank, task.send.mpi_tag );
-                char buf[100];
                 if(logging) printf("%2d: sent %d faces to rank %d\n",
                                    rank, mesh.FN(), task.send.mpi_rank);
             }
