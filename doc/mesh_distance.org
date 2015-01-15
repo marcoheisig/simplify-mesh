@@ -1,0 +1,232 @@
+#+LATEX_HEADER: \usepackage{amsmath}
+
+** Mesh Quality
+
+Our parallel smoothing approach will potentially produce results of lower quality than the results of a serial approach. The parallel approach performs the largest part of the simplification on partial, intermediate meshes and is constrained in its optimization decisions in the necessity to preserve the mesh boundaries. Missing pieces in a partial meshes can cause the partial mesh to have a more complex topology than the complete mesh. Triangles are uselessly spent to model shapes that are just an artifact of work distribution.
+
+A measurement method to determine the quantitative difference between two meshes is the Hausdorff Sampling Difference\cite{CGF:CGF236}. The Hausdorff Distance of a point on mesh $X$ to the mesh $Y$ is 
+\begin{equation*}
+d_H(x, Y) = \inf_{y\in Y} d(x,y)
+\end{equation*}
+i.e. the distance to the closest point on $Y$. By sampling the Hausdorff Distance of multiple points on the mesh $X$ to the mesh $Y$, a measure for the likeness of the two meshes $X$ and $Y$ can be calculated. We use the relative Root Mean Square Error (RMSE) of all sample points $x_i$:
+\begin{equation*}
+\frac{ \sqrt{\frac{\sum\limits_{i=0}^{N}{d_H(x_i,Y)^2}}{N}}}{L_{diag}}
+\end{equation*}
+
+where $L_{diag}$ is the diagonal of the axis aligned bounding box of the mesh. The RMSE corresponds to the standard deviation of the Hausdorff Distance. Note that the Hausdorff Sampling Difference is not symmetrical. It is intuitively reasonable to sample on the original, detailed mesh and calculate the difference to the simplified mesh.
+
+If the whole bounding box is rendered on a 1000 pixel wide screen, the smallest detectable relative distance in the picture would be $0.001$. The silhouette of a rendered shape will have small, visible differences at a RMSE of $0.001$. Note that in a rendering, small differences of the surface normals are clearly visible as facets, which can be counteracted by interpolating the vertex normals over the triangles. Long, slender, yet clearly visible artifacts are not properly represented by the RMSE, but the simplification tends not to produce these kinds of errors.
+
+#+CAPTION: relative Hausdorff Sampling Difference RMSE of the original 5 million triangle mesh to various simplifications with smaller triangle count. Each triangle count is computed serially, with 8, and 64 processors. The original mesh is the output of a free surface simulation in walberla of a single bubble in a shear flow (see figure \ref{fig:splitmesh}). The mesh is split into 384 cubes on a $8\times8\times6$ grid.
+#+LABEL: fig:hausdorf
+[[file:haussdorf_differences.png]]
+
+Figure \ref{fig:hausdorf} shows a comparison of the simplification results of a serial approach to our parallel approach with 8 and 64 processes. The serial result (red diamonds) is manually generated with *Meshlab*. The results of the serial version initially show a much higher difference than the results of the parallel version. This is likely because a too high point merging tolerance has been used in *Meshlab*. However, too low merging tolerances can lead to failures in the boundary stitching, which results in holes and other topology errors in the final mesh, which looks bad in renderings with normal interpolation enabled.
+
+The $64\times$ way parallel results (blue circles) are visually comparable to the serial results with the exception of the mesh with 10 faces. With 10 faces, the bubble consists only of 8 faces arranged in a hexaeder. The $64\times$ way parallel result lost the topology of the bubble in one of the earlier mesh collection stages.
+
+The $8\times$ way parallel results (green triangles) are of equal visual quality down to 500 faces. The other two series both mange to reduce the quadratic side plane of the scene to just two triangles very early in the collection process, and do not waste triangles on the side plane. At 100 triangles, the $8\times$ results fail to recreate the topology of the bubble; at 25 and 10 the bubble is actually completely missing, hence an average deviation of 23\%. The reason for the worse performance of the $8\times$ version lies in a different assignment of mesh parts to processors. The mesh parts grouped together in the $64\times$ version happened to fit better and have simpler topology than the mesh parts grouped in the $8\times$. There is no way to predict the how the intermediate mesh topology is affected by parallelism.
+
+#+CAPTION: Rendering of the test scene, with the cut lines of the cuboid sub partitions.
+#+LABEL: fig:splitmesh
+[[file:splitmesh.png]]
+
+For visually pleasing results, meshes with triangle counts in such low regions are unusable anyway. These very low face counts have been included in this evaluation because it was expected that differences would be the biggest there. We find that at practically usable triangle counts, the parallel results are visually equivalent to the serial results.
+
+
+*** graphs                                                         :noexport:
+#+TBLNAME: MESH_DIFFERENCES
+|   5M vs |   serial |      np8 |     np64 |
+|---------+----------+----------+----------|
+| 1000000 | 0.000198 | 0.000009 | 0.000008 |
+|   50000 | 0.000200 | 0.000027 | 0.000025 |
+|    2000 | 0.000272 | 0.000217 | 0.000578 |
+|     500 | 0.000711 | 0.001080 | 0.000906 |
+|     100 | 0.003579 | 0.020866 | 0.003390 |
+|      25 | 0.016046 | 0.230553 | 0.017334 |
+|      10 | 0.021039 | 0.231052 | 0.088870 |
+
+
+#+BEGIN_SRC gnuplot :var data=MESH_DIFFERENCES :exports none :file haussdorf_differences.png :term pngcairo :cache yes
+reset
+set term pngcairo size 2000, 1200 font "Sans, 36" enhanced dashed
+set style line 80 lt rgb "#808080"
+set style line 81 lt 0  lw 3
+set style line 81 lt rgb "#808080" lw 3 # grey
+set grid back linestyle 81
+set border 3 back linestyle 80
+set xtics nomirror
+set ytics nomirror
+set mxtics 10    # Makes logscale look good.
+
+set style line 1 lt 1 lc rgb "#A00000" lw 6 pt 13 ps 4
+set style line 2 lt 1 lc rgb "#00A000" lw 6 pt 11 ps 4
+set style line 3 lt 1 lc rgb "#5060D0" lw 6 pt 7  ps 4
+set style line 4 lt 1 lc rgb "#F25900" lw 6 pt 5  ps 4
+set style line 5 lt 1 lc rgb "#F0F000" lw 6 pt 1  ps 4
+set style line 6 lt 1 lc rgb "#9000A0" lw 6 pt 4  ps 4
+
+
+set xtics rotate
+
+set xlabel "triangle count"
+set ylabel "relative RMSE"
+set key right bottom
+
+
+set logscale x
+set logscale y
+
+
+set xrange[1000000:10]
+
+plot data u 1:2:xticlabels(1) w lp ls 1 title "serial", \
+data u 1:3 w lp ls 2 title "np 8", \
+data u 1:4 w lp ls 3 title "np 64",
+#+END_SRC
+
+#+RESULTS[279bcee1a6445735d297305eab29aa2f45bc3085]:
+[[file:haussdorf_differences.png]]
+
+
+
+
+*** Reference
+@article {CGF:CGF236,
+author = {Cignoni, P. and Rocchini, C. and Scopigno, R.},
+title = {Metro: Measuring Error on Simplified Surfaces},
+journal = {Computer Graphics Forum},
+volume = {17},
+number = {2},
+publisher = {Blackwell Publishers},
+issn = {1467-8659},
+url = {http://dx.doi.org/10.1111/1467-8659.00236},
+doi = {10.1111/1467-8659.00236},
+pages = {167--174},
+keywords = {surface simplification, surface comparison, approximation error, scan conversion},
+year = {1998},
+}
+
+
+** Performance
+
+
+
+
+#+CAPTION: execution times to reduce the 5 million triangle mesh in figure \ref{fig:splitmesh} to three different target triangle counts. Measured on an Intel Core i7-3930K (Ivy Bridge, 6 Core, 3.2 GHz)
+#+LABEL: fig:perf
+[[file:perf.png]]
+
+The border stitching phase of the reduction is the dominant part of the execution time. That is the reason for the increase in execution time with higher target face counts in figure \ref{fig:perf}. A lower target face count reduces the size of the intermediate results and therefore also the time to stitch the intermediate results together. This is also the reason for a decrease in execution time beyond the available physical six cores: Each process consumes its assigned files and stitches them to its current mesh before the simplification is performed. When more processes are used, more meshes are stitched after exchange between two nodes and after simplification, which is much faster than before the simplification.
+
+
+Figure \ref{fig:speedup} shows speedups of the sample mesh. The less than perfect scaling is expected, since the progressive phases of the algorithm are performed by continuously halved process counts, until the last phase and the write to disk is done serially. Shared resources like disk reading bandwidth further limit scaling. This is not a problem when scaling to multiple nodes, as there is either a separate disk per node or a parallel HPC storage system available. Another factor is load imbalance, since the cubes are statically assigned but contain very different face counts.
+
+
+
+#+CAPTION: speedup plot of the data in figure \ref{fig:perf}
+#+LABEL: fig:speedup
+[[file:speedup.png]]
+
+
+*** graphs :noexport:
+
+#+TBLNAME: PERF
+| process count | 2000 | 50000 | 300000 |
+|---------------+------+-------+--------|
+|             1 |   46 |    62 |    174 |
+|             2 |   26 |    37 |     98 |
+|             3 |   20 |    27 |     72 |
+|             4 |   15 |    22 |     58 |
+|             5 |   15 |    21 |     51 |
+|             6 |   13 |    19 |     44 |
+|            12 |   13 |    16 |     37 |
+|            24 |   12 |    16 |     33 |
+
+
+#+BEGIN_SRC gnuplot :var data=PERF :exports none :file speedup.png :term pngcairo :cache yes
+reset
+set term pngcairo size 2000, 1200 font "Sans, 36" enhanced dashed
+set style line 80 lt rgb "#808080"
+set style line 81 lt 0  lw 3
+set style line 81 lt rgb "#808080" lw 3 # grey
+set grid back linestyle 81
+set border 3 back linestyle 80
+set xtics nomirror
+set ytics nomirror
+set mxtics 10    # Makes logscale look good.
+
+set style line 1 lt 1 lc rgb "#A00000" lw 6 pt 13 ps 4
+set style line 2 lt 1 lc rgb "#00A000" lw 6 pt 11 ps 4
+set style line 3 lt 1 lc rgb "#5060D0" lw 6 pt 7  ps 4
+set style line 4 lt 1 lc rgb "#F25900" lw 6 pt 5  ps 4
+set style line 5 lt 1 lc rgb "#F0F000" lw 6 pt 1  ps 4
+set style line 6 lt 1 lc rgb "#9000A0" lw 6 pt 4  ps 4
+
+
+set xtics rotate
+
+set xlabel "process count"
+set ylabel "speedup"
+set key right bottom
+
+
+#set logscale x
+#set logscale y
+
+
+set xrange[1:24]
+set yrange[0:6]
+
+plot data u 1:(46/$2):xticlabels(1) w lp ls 1 title "2000 triangles", \
+data u 1:(62/$3) w lp ls 2 title "50000 triangles", \
+data u 1:(174/$4) w lp ls 3 title "500000 triangles",
+#+END_SRC
+
+#+RESULTS[6dc19dc304ac489cb3dc86549f5c80cace585384]:
+[[file:speedup.png]]
+
+#+BEGIN_SRC gnuplot :var data=PERF :exports none :file perf.png :term pngcairo :cache yes
+reset
+set term pngcairo size 2000, 1200 font "Sans, 36" enhanced dashed
+set style line 80 lt rgb "#808080"
+set style line 81 lt 0  lw 3
+set style line 81 lt rgb "#808080" lw 3 # grey
+set grid back linestyle 81
+set border 3 back linestyle 80
+set xtics nomirror
+set ytics nomirror
+set mxtics 10    # Makes logscale look good.
+
+set style line 1 lt 1 lc rgb "#A00000" lw 6 pt 13 ps 4
+set style line 2 lt 1 lc rgb "#00A000" lw 6 pt 11 ps 4
+set style line 3 lt 1 lc rgb "#5060D0" lw 6 pt 7  ps 4
+set style line 4 lt 1 lc rgb "#F25900" lw 6 pt 5  ps 4
+set style line 5 lt 1 lc rgb "#F0F000" lw 6 pt 1  ps 4
+set style line 6 lt 1 lc rgb "#9000A0" lw 6 pt 4  ps 4
+
+
+set xtics rotate
+
+set xlabel "process count"
+set ylabel "execution time/s"
+set key right top
+
+
+set logscale x
+set logscale y
+
+set ytics add 2
+
+set xrange[1:24]
+set yrange[10:200]
+
+plot data u 1:2:xticlabels(1) w lp ls 1 title "2000 triangles", \
+data u 1:3 w lp ls 2 title "50000 triangles", \
+data u 1:4 w lp ls 3 title "500000 triangles",
+#+END_SRC
+
+#+RESULTS[b3c5af3967aa45aed2ac3bd90a1aad4b746ee268]:
+[[file:perf.png]]
+
+

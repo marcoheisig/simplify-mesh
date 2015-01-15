@@ -35,7 +35,7 @@ Process::Process(int *argc, char ***argv) {
          po::value<int>()->default_value(5000),
          "set target number of faces")
         ("merge-tolerance,m",
-         po::value<float>()->default_value(1.0e-7f),
+         po::value<float>()->default_value(1.0e-6f),
          "tolerance for merging mesh boundaries")
         ("input,i",
          po::value<std::vector<std::string> >(),
